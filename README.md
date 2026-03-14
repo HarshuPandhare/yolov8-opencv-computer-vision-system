@@ -36,17 +36,15 @@ A **Flask web interface** allows switching between detection modes and displays 
 
 # 📸 Frontend Interface
 
-Add your frontend screenshot below.
-
 ![Frontend Screenshot](InfoData/frontend.png)
 
 ---
 
-# 📸 Detection Results
+## 📸 Object Detection
 
-## Object Detection
-
-![Object Detection](screenshots/object_detection.png)
+| Detection Result 1 | Detection Result 2 |
+|--------------------|--------------------|
+| ![Object Detection 1](InfoData/cycle.png) | ![Object Detection 2](InfoData/mouse.png) |
 
 ---
 
@@ -58,7 +56,7 @@ Add your frontend screenshot below.
 
 ## Eye Detection
 
-![Eye Detection](screenshots/eye_detection.png)
+![Eye Detection](InfoData/cars.png)
 
 ---
 
