@@ -1,3 +1,9 @@
+![Release](https://img.shields.io/badge/release-v0.2.6-blue)
+![Stars](https://img.shields.io/github/stars/HanshuPandhare/yolov8-opencv-computer-vision-system)
+![Issues](https://img.shields.io/github/issues/HanshuPandhare/yolov8-opencv-computer-vision-system)
+![Contributors](https://img.shields.io/github/contributors/HanshuPandhare/yolov8-opencv-computer-vision-system)
+![License](https://img.shields.io/badge/license-Apache%202.0-green)
+![Last Commit](https://img.shields.io/github/last-commit/HanshuPandhare/yolov8-opencv-computer-vision-system)
 # 🔍 AI Real-Time Vision Detection System (YOLOv8 + OpenCV)
 
 An **AI-based real-time computer vision system** built using **Python, OpenCV, YOLOv8, and Flask**.
