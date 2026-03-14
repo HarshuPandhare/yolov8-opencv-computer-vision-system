@@ -50,13 +50,14 @@ A **Flask web interface** allows switching between detection modes and displays 
 
 ## Vehicle Detection
 
-![Vehicle Detection](screenshots/vehicle_detection.png)
+![Vehicle Detection](InfoData/cars.png)
 
 ---
 
 ## Eye Detection
-
-![Eye Detection](InfoData/cars.png)
+| OPEN EYES | CLOSED EYES |
+|--------------------|--------------------|
+| ![Object Detection 1](InfoData/openeyes.png) | ![Object Detection 2](InfoData/closeeyes.png) |
 
 ---
 
