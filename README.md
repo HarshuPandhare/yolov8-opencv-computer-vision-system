@@ -3,7 +3,7 @@
 ![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-orange)
 ![Flask](https://img.shields.io/badge/Flask-Web%20App-black)
 ![Stars](https://img.shields.io/github/stars/HarshuPandhare/yolov8-opencv-computer-vision-system)
-# 🔍 AI Real-Time Vision Detection System (YOLOv8 + OpenCV)
+#  AI Real-Time Vision Detection System (YOLOv8 + OpenCV)
 
 An **AI-based real-time computer vision system** built using **Python, OpenCV, YOLOv8, and Flask**.
 
@@ -17,7 +17,7 @@ A **Flask web interface** allows switching between detection modes and displays 
 
 ---
 
-# 🚀 Features
+#  Features
 
 ✔ Real-time Object Detection  
 ✔ Vehicle Detection  
@@ -28,7 +28,7 @@ A **Flask web interface** allows switching between detection modes and displays 
 
 ---
 
-# 🛠 Technologies Used
+#  Technologies Used
 
 - Python
 - OpenCV
@@ -39,13 +39,13 @@ A **Flask web interface** allows switching between detection modes and displays 
 
 ---
 
-# 📸 Frontend Interface
+#  Frontend Interface
 
 ![Frontend Screenshot](InfoData/frontend.png)
 
 ---
 
-## 📸 Object Detection
+##  Object Detection
 
 | Detection Result 1 | Detection Result 2 |
 |--------------------|--------------------|
