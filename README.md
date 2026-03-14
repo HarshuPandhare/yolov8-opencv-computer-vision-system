@@ -38,7 +38,7 @@ A **Flask web interface** allows switching between detection modes and displays 
 
 Add your frontend screenshot below.
 
-![Frontend Screenshot](Info DataSS/front end.png)
+![Frontend Screenshot](InfoData/frontend.png)
 
 ---
 
