@@ -61,20 +61,24 @@ A **Flask web interface** allows switching between detection modes and displays 
 
 ---
 
-# 📂 Project Structure
-project/
-│
-├── app.py
-├── object_detection.py
-├── vehicle_detect.py
-├── eye_detection.py
-│
-├── template/
-│ └── index.html
-│
-├── static/
-│
-├── yolov8n.pt
-├── weapon_yolov5.pt
-│
-└── README.md
+Run This To install libraries in your environment  - 
+-
+```shell
+pip install -r requirements.txt
+
+```
+## GPU Support
+
+The project supports GPU acceleration using CUDA.
+
+Recommended setup:
+
+Python 3.11  
+CUDA 11.8  
+PyTorch with CUDA support
+
+Install PyTorch with CUDA:
+```shell
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+```
