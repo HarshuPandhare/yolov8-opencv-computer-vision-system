@@ -77,6 +77,15 @@ Python 3.11
 CUDA 11.8  
 PyTorch with CUDA support
 
+
+# 📥 Download Project from GitHub
+
+Clone the repository to your system:
+
+```bash
+git clone https://github.com/HanshuPandhare/yolov8-opencv-computer-vision-system.git
+cd yolov8-opencv-computer-vision-system
+
 Install PyTorch with CUDA:
 ```shell
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
