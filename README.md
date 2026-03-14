@@ -79,7 +79,7 @@ PyTorch with CUDA support
 Install PyTorch with CUDA:
 ```shell
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
+```
 
 
 # 📥 Download Project from GitHub
