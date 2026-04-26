@@ -45,19 +45,13 @@ A **Flask web interface** allows switching between detection modes, toggling cam
 
 ---
 
-##  Object Detection
 
-| Detection Result 1 | Detection Result 2 |
-|--------------------|--------------------|
-| ![Object Detection 1](InfoData/cycle.png) | ![Object Detection 2](InfoData/mouse.png) |
-
----
 
 ## Vehicle Detection
 
 Tracks and counts vehicles in real-time. The UI features a control panel to capture current vehicle counts, view capture logs, and download a detailed vehicle detection report (TXT).
 
-![Vehicle Detection](InfoData/cars.png)
+![Vehicle Detection](infodata/carss.png)
 
 ---
 
@@ -67,7 +61,7 @@ Monitors human eye state and triggers a drowsiness alert banner with an audio bu
 
 | OPEN EYES | CLOSED EYES |
 |--------------------|--------------------|
-| ![Object Detection 1](InfoData/openeyes.png) | ![Object Detection 2](InfoData/closeeyes.png) |
+| ![Object Detection 1](infodata/oprn.png) | ![Object Detection 2](infodata/clodde.png) |
 
 ---
 
