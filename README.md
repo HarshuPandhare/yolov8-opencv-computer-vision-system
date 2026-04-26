@@ -41,7 +41,7 @@ A **Flask web interface** allows switching between detection modes, toggling cam
 
 #  Frontend Interface
 
-![Frontend Screenshot](InfoData/frontend.png)
+![Frontend Screenshot](infodata/frontend.png)
 
 ---
 
