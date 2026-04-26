@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>AI Vision Detection System</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #04051a;
+      font-family: 'Rajdhani', sans-serif;
+      text-align: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: #506ca9;
+    }
+
+    /* Animated grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 200, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 200, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glow orbs */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(0, 140, 255, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      padding: 40px 20px 60px;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 10px;
+    }
+
+    .header .badge {
+      display: inline-block;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #00c8ff;
+      text-transform: uppercase;
+      border: 1px solid rgba(0, 200, 255, 0.3);
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      background: rgba(0, 200, 255, 0.05);
+    }
+
+    h1 {
+      font-size: clamp(26px, 4vw, 42px);
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #ffffff 0%, #00c8ff 50%, #0070ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: rgba(0, 200, 255, 0.5);
+      letter-spacing: 4px;
+      margin-bottom: 40px;
+    }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: rgba(180, 210, 255, 0.5);
+      letter-spacing: 1px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #00ff88;
+      box-shadow: 0 0 8px #00ff88;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    /* Buttons */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 36px;
+    }
+
+    button {
+      position: relative;
+      padding: 12px 28px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border: 1px solid rgba(0, 150, 255, 0.35);
+      border-radius: 4px;
+      background: rgba(0, 100, 255, 0.08);
+      color: #a0c8ff;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0, 150, 255, 0.15), rgba(0, 200, 255, 0.05));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    button::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00c8ff, transparent);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    button:hover {
+      border-color: rgba(0, 200, 255, 0.7);
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(0, 150, 255, 0.2), inset 0 0 20px rgba(0, 150, 255, 0.05);
+      transform: translateY(-1px);
+    }
+
+    button:hover::before {
+      opacity: 1;
+    }
+
+    button:hover::after {
+      transform: scaleX(1);
+    }
+
+    button.active {
+      border-color: #00c8ff;
+      color: #ffffff;
+      background: rgba(0, 150, 255, 0.15);
+      box-shadow: 0 0 24px rgba(0, 200, 255, 0.25);
+    }
+
+    /* Camera box */
+    .camera-box {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .video-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    /* Corner brackets */
+    .video-wrapper::before,
+    .video-wrapper::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .video-wrapper::before {
+      top: -4px;
+      left: -4px;
+      border-top: 2px solid #00c8ff;
+      border-left: 2px solid #00c8ff;
+      box-shadow: -2px -2px 8px rgba(0, 200, 255, 0.3);
+    }
+
+    .video-wrapper::after {
+      bottom: -4px;
+      right: -4px;
+      border-bottom: 2px solid #00c8ff;
+      border-right: 2px solid #00c8ff;
+      box-shadow: 2px 2px 8px rgba(0, 200, 255, 0.3);
+    }
+
+    .corner-br,
+    .corner-tl-inner {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .corner-br {
+      top: -4px;
+      right: -4px;
+      border-top: 2px solid #00c8ff;
+      border-right: 2px solid #00c8ff;
+      box-shadow: 2px -2px 8px rgba(0, 200, 255, 0.3);
+    }
+
+    .corner-tl-inner {
+      bottom: -4px;
+      left: -4px;
+      border-bottom: 2px solid #00c8ff;
+      border-left: 2px solid #00c8ff;
+      box-shadow: -2px 2px 8px rgba(0, 200, 255, 0.3);
+    }
+
+    /* Scan line animation */
+    .scan-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0, 200, 255, 0.6), transparent);
+      animation: scan 3s linear infinite;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    @keyframes scan {
+      0% {
+        top: 0%;
+        opacity: 0;
+      }
+
+      5% {
+        opacity: 1;
+      }
+
+      95% {
+        opacity: 1;
+      }
+
+      100% {
+        top: 100%;
+        opacity: 0;
+      }
+    }
+
+    #video {
+      width: 600px;
+      max-width: 90vw;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 150, 255, 0.3);
+      display: block;
+      background: #0a0f1a;
+      box-shadow:
+        0 0 0 1px rgba(0, 200, 255, 0.05),
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(0, 100, 255, 0.1);
+    }
+
+    /* Info bar below video */
+    .info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 600px;
+      width: 90vw;
+      margin: 12px auto 0;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: rgba(0, 200, 255, 0.4);
+      letter-spacing: 1px;
+    }
+
+    /* ===== DROWSINESS ALERT BANNER ===== */
+    .alert-banner {
+      display: none;
+      max-width: 600px;
+      width: 90vw;
+      margin: 16px auto 0;
+      padding: 14px 20px;
+      background: rgba(255, 30, 30, 0.12);
+      border: 1px solid rgba(255, 60, 60, 0.5);
+      border-radius: 6px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: #ff4444;
+      animation: alert-flash 0.8s ease-in-out infinite alternate;
+    }
+
+    .alert-banner.visible {
+      display: block;
+    }
+
+    @keyframes alert-flash {
+      0% {
+        background: rgba(255, 30, 30, 0.08);
+        border-color: rgba(255, 60, 60, 0.3);
+      }
+
+      100% {
+        background: rgba(255, 30, 30, 0.2);
+        border-color: rgba(255, 60, 60, 0.8);
+      }
+    }
+
+    /* ===== VEHICLE CONTROLS PANEL ===== */
+    .vehicle-panel {
+      display: none;
+      max-width: 600px;
+      width: 90vw;
+      margin: 20px auto 0;
+      padding: 18px 24px;
+      background: rgba(0, 200, 255, 0.04);
+      border: 1px solid rgba(0, 150, 255, 0.2);
+      border-radius: 6px;
+    }
+
+    .vehicle-panel.visible {
+      display: block;
+    }
+
+    .vehicle-panel h3 {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 3px;
+      color: rgba(248, 253, 255, 0.6);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .vehicle-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .vehicle-actions button {
+      padding: 10px 22px;
+      font-size: 13px;
+    }
+
+    button.btn-capture {
+      border-color: rgba(0, 255, 136, 0.4);
+      color: #00ff88;
+      background: rgba(0, 255, 136, 0.08);
+    }
+
+    button.btn-capture:hover {
+      border-color: #00ff88;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.25);
+      color: #fff;
+    }
+
+    button.btn-download {
+      border-color: rgba(255, 200, 0, 0.4);
+      color: #ffcc00;
+      background: rgba(255, 200, 0, 0.08);
+    }
+
+    button.btn-download:hover {
+      border-color: #ffcc00;
+      box-shadow: 0 0 20px rgba(255, 200, 0, 0.25);
+      color: #fff;
+    }
+
+    button.btn-clear {
+      border-color: rgba(255, 80, 80, 0.4);
+      color: #ff6666;
+      background: rgba(255, 80, 80, 0.08);
+    }
+
+    button.btn-clear:hover {
+      border-color: #ff6666;
+      box-shadow: 0 0 20px rgba(255, 80, 80, 0.25);
+      color: #fff;
+    }
+
+    .capture-log {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: rgba(0, 200, 255, 0.5);
+      letter-spacing: 1px;
+      max-height: 150px;
+      overflow-y: auto;
+      text-align: left;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      border: 1px solid rgba(0, 150, 255, 0.1);
+    }
+
+    .capture-log:empty::after {
+      content: 'No captures yet. Click CAPTURE to record current vehicle counts.';
+      color: rgba(0, 200, 255, 0.25);
+    }
+
+    .capture-log .log-entry {
+      margin-bottom: 4px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(0, 150, 255, 0.08);
+    }
+
+    .capture-log .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .capture-log .log-time {
+      color: #00c8ff;
+    }
+
+    .capture-log .log-count {
+      color: #00ff88;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      padding: 12px 28px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      border-radius: 6px;
+      z-index: 9999;
+      transition: transform 0.4s ease, opacity 0.4s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success {
+      background: rgba(0, 255, 136, 0.15);
+      border: 1px solid rgba(0, 255, 136, 0.5);
+      color: #00ff88;
+    }
+
+    .toast.info {
+      background: rgba(0, 200, 255, 0.15);
+      border: 1px solid rgba(0, 200, 255, 0.5);
+      color: #00c8ff;
+    }
+
+    /* Camera selector */
+    .cam-selector {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .cam-selector label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: rgba(180, 210, 255, 0.6);
+      text-transform: uppercase;
+    }
+
+    .cam-selector select {
+      padding: 8px 16px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      background: rgba(0, 100, 255, 0.1);
+      color: #a0c8ff;
+      border: 1px solid rgba(0, 150, 255, 0.35);
+      border-radius: 4px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.25s ease;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300c8ff' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    .cam-selector select:hover,
+    .cam-selector select:focus {
+      border-color: rgba(0, 200, 255, 0.7);
+      box-shadow: 0 0 16px rgba(0, 150, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .cam-selector select option {
+      background: #0a1228;
+      color: #a0c8ff;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Buzzer audio element -->
+  <audio id="buzzer-audio" src="/static/alarm_buzzer.mp3" loop preload="auto"></audio>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast"></div>
+
+  <div class="container">
+
+    <div class="header">
+      <div class="badge">◈ Neural Vision v2.4</div>
+      <h1>AI Vision Detection System</h1>
+      <div class="subtitle">REAL-TIME · MULTI-MODAL · COMPUTER VISION</div>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-item"><span class="status-dot"></span>SYSTEM ONLINE</div>
+      <div class="status-item"><span class="status-dot"
+          style="background:#00aaff;box-shadow:0 0 8px #00aaff"></span>MODEL LOADED</div>
+      <div class="status-item"><span class="status-dot"
+          style="background:#ffaa00;box-shadow:0 0 8px #ffaa00;animation-delay:.7s"></span>STREAM READY</div>
+    </div>
+
+    <div class="cam-selector">
+      <label for="cam-select">◈ Camera:</label>
+      <select id="cam-select" onchange="switchCamera(this.value)">
+        <option value="0">Laptop Webcam (0)</option>
+        <option value="1">OBS Virtual Cam (1)</option>
+        <option value="2">Camera 2</option>
+        <option value="3">Camera 3</option>
+      </select>
+    </div>
+
+    <div class="controls">
+      <button id="btn-object" onclick="startObject()">Object Detection</button>
+      <button id="btn-eye" onclick="startEye()">Eye Detection</button>
+      <button id="btn-vehicle" onclick="startVehicle()">Vehicle Detection</button>
+    </div>
+
+    <div class="camera-box">
+      <div class="video-wrapper">
+        <div class="corner-br"></div>
+        <div class="corner-tl-inner"></div>
+        <div class="scan-line"></div>
+        <img id="video" src="/object">
+      </div>
+    </div>
+
+    <div class="info-bar">
+      <span id="mode-label">MODE: OBJECT</span>
+      <span>RES 640×480</span>
+      <span id="fps-label">LIVE</span>
+    </div>
+
+    <!-- Drowsiness alert banner (eye mode only) -->
+    <div id="alert-banner" class="alert-banner">
+      ⚠ DROWSINESS ALERT — EYES CLOSED TOO LONG ⚠
+    </div>
+
+    <!-- Vehicle controls panel (vehicle mode only) -->
+    <div id="vehicle-panel" class="vehicle-panel">
+      <h3>◈ Vehicle Tracking Controls</h3>
+      <div class="vehicle-actions">
+        <button class="btn-capture" id="btn-capture" onclick="captureVehicles()">⬤ Capture</button>
+        <button class="btn-download" id="btn-download" onclick="downloadReport()">↓ Download Report</button>
+        <button class="btn-clear" id="btn-clear" onclick="clearCaptures()">✕ Clear All</button>
+      </div>
+      <div id="capture-log" class="capture-log"></div>
+    </div>
+
+  </div>
+
+  <script>
+
+    let currentMode = 'object';
+    let eyePollInterval = null;
+    let buzzerAudio = null;
+    let buzzerPlaying = false;
+    let buzzerUnlocked = false;
+
+    // Initialize audio on first user interaction (browser autoplay policy)
+    document.addEventListener('click', function unlockAudio() {
+      buzzerAudio = document.getElementById('buzzer-audio');
+      buzzerAudio.volume = 0.8;
+      // Create a short silent play to unlock audio context
+      buzzerAudio.play().then(() => {
+        buzzerAudio.pause();
+        buzzerAudio.currentTime = 0;
+        buzzerUnlocked = true;
+      }).catch(() => { });
+      document.removeEventListener('click', unlockAudio);
+    }, { once: true });
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast ' + type;
+      setTimeout(() => toast.classList.add('show'), 10);
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function setActive(id) {
+      ['btn-object', 'btn-eye', 'btn-vehicle'].forEach(b => document.getElementById(b).classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function stopEyePolling() {
+      if (eyePollInterval) {
+        clearInterval(eyePollInterval);
+        eyePollInterval = null;
+      }
+      // Stop buzzer
+      if (buzzerAudio && buzzerPlaying) {
+        buzzerAudio.pause();
+        buzzerAudio.currentTime = 0;
+        buzzerPlaying = false;
+      }
+      document.getElementById('alert-banner').classList.remove('visible');
+    }
+
+    function startEyePolling() {
+      stopEyePolling();
+      buzzerAudio = document.getElementById('buzzer-audio');
+
+      eyePollInterval = setInterval(() => {
+        fetch('/eye_status')
+          .then(r => r.json())
+          .then(data => {
+            const banner = document.getElementById('alert-banner');
+
+            if (data.alarm) {
+              banner.classList.add('visible');
+              if (!buzzerPlaying && buzzerUnlocked) {
+                buzzerAudio.play().catch(() => { });
+                buzzerPlaying = true;
+              }
+            } else {
+              banner.classList.remove('visible');
+              if (buzzerPlaying) {
+                buzzerAudio.pause();
+                buzzerAudio.currentTime = 0;
+                buzzerPlaying = false;
+              }
+            }
+          })
+          .catch(() => { });
+      }, 500); // Poll every 500ms
+    }
+
+    function startObject() {
+      currentMode = 'object';
+      stopEyePolling();
+      document.getElementById("video").src = "/object?" + new Date().getTime();
+      document.getElementById("mode-label").textContent = "MODE: OBJECT";
+      document.getElementById("vehicle-panel").classList.remove('visible');
+      setActive('btn-object');
+    }
+
+    function startEye() {
+      currentMode = 'eye';
+      document.getElementById("video").src = "/eye?" + new Date().getTime();
+      document.getElementById("mode-label").textContent = "MODE: EYE";
+      document.getElementById("vehicle-panel").classList.remove('visible');
+      setActive('btn-eye');
+      startEyePolling();
+    }
+
+    function startVehicle() {
+      currentMode = 'vehicle';
+      stopEyePolling();
+      document.getElementById("video").src = "/vehicle?" + new Date().getTime();
+      document.getElementById("mode-label").textContent = "MODE: VEHICLE";
+      document.getElementById("vehicle-panel").classList.add('visible');
+      setActive('btn-vehicle');
+    }
+
+    // Vehicle capture & report functions
+    function captureVehicles() {
+      fetch('/capture_vehicles', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          showToast('CAPTURE RECORDED', 'success');
+
+          const log = document.getElementById('capture-log');
+          const entry = document.createElement('div');
+          entry.className = 'log-entry';
+
+          const counts = data.data.counts;
+          const countStr = Object.keys(counts).length > 0
+            ? Object.entries(counts).map(([k, v]) => `${k}: ${v}`).join(' | ')
+            : 'No vehicles detected';
+          const total = Object.values(counts).reduce((a, b) => a + b, 0);
+
+          entry.innerHTML = `<span class="log-time">[${data.data.timestamp}]</span> — <span class="log-count">${countStr}</span> (Total: ${total})`;
+          log.appendChild(entry);
+          log.scrollTop = log.scrollHeight;
+        })
+        .catch(() => showToast('CAPTURE FAILED', 'info'));
+    }
+
+    function downloadReport() {
+      window.location.href = '/vehicle_report';
+      showToast('DOWNLOADING REPORT...', 'info');
+    }
+
+    function clearCaptures() {
+      fetch('/clear_captures', { method: 'POST' })
+        .then(r => r.json())
+        .then(() => {
+          document.getElementById('capture-log').innerHTML = '';
+          showToast('ALL CAPTURES CLEARED', 'info');
+        })
+        .catch(() => { });
+    }
+
+    // Camera switching
+    function switchCamera(index) {
+      fetch('/set_camera', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ index: parseInt(index) })
+      })
+        .then(r => r.json())
+        .then(() => {
+          showToast('CAMERA SWITCHED TO INDEX ' + index, 'info');
+          // Refresh the current stream so it picks up the new camera
+          if (currentMode === 'object') startObject();
+          else if (currentMode === 'eye') startEye();
+          else if (currentMode === 'vehicle') startVehicle();
+        })
+        .catch(() => showToast('CAMERA SWITCH FAILED', 'info'));
+    }
+
+    // Sync dropdown with server on load
+    fetch('/get_camera')
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('cam-select').value = data.camera_index;
+      })
+      .catch(() => { });
+
+    // Set first button active on load
+    document.getElementById('btn-object').classList.add('active');
+
+  </script>
+
+</body>
+
+</html>
