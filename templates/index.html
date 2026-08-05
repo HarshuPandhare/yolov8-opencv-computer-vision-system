@@ -557,6 +557,133 @@
       background: #0a1228;
       color: #a0c8ff;
     }
+
+    /* Restriction Toggle */
+    .restriction-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding: 8px;
+      background: rgba(255, 60, 60, 0.05);
+      border: 1px solid rgba(255, 60, 60, 0.1);
+      border-radius: 4px;
+    }
+
+    .restriction-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: rgba(255, 80, 80, 0.7);
+    }
+
+    /* Switch styling */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .4s;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 4px;
+      bottom: 3px;
+      background-color: #555;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background-color: rgba(255, 40, 40, 0.2);
+      border-color: rgba(255, 40, 40, 0.5);
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(24px);
+      background-color: #ff4444;
+      box-shadow: 0 0 8px #ff4444;
+    }
+
+    /* Traffic Intelligence Panel */
+    .traffic-intel {
+      margin-top: 18px;
+      padding: 14px;
+      background: rgba(0, 160, 255, 0.05);
+      border: 1px solid rgba(0, 160, 255, 0.15);
+      border-radius: 4px;
+      text-align: left;
+    }
+
+    .intel-header {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #00c8ff;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(0, 200, 255, 0.1);
+      padding-bottom: 6px;
+    }
+
+    .intel-metrics {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 10px;
+    }
+
+    .metric {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .metric .label {
+      font-size: 9px;
+      color: rgba(180, 210, 255, 0.5);
+      margin-bottom: 2px;
+    }
+
+    .metric .value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 16px;
+      color: #00ff88;
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+
+    .prediction-msg {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: #ffaa00;
+      text-align: center;
+      padding: 8px;
+      background: rgba(255, 170, 0, 0.05);
+      border-radius: 4px;
+      border: 1px dashed rgba(255, 170, 0, 0.2);
+    }
   </style>
 
 </head>
@@ -621,15 +748,44 @@
       ⚠ DROWSINESS ALERT — EYES CLOSED TOO LONG ⚠
     </div>
 
+    <!-- Weapon alert banner (object mode only) -->
+    <div id="weapon-alert-banner" class="alert-banner">
+      ⚠ WEAPON DETECTED — CAUTION ⚠
+    </div>
+
     <!-- Vehicle controls panel (vehicle mode only) -->
     <div id="vehicle-panel" class="vehicle-panel">
       <h3>◈ Vehicle Tracking Controls</h3>
+
+      <div class="restriction-box">
+        <span class="restriction-label">TRUCK RESTRICTION</span>
+        <label class="switch">
+          <input type="checkbox" id="truck-restriction-check" onchange="toggleTruckRestriction(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+
       <div class="vehicle-actions">
         <button class="btn-capture" id="btn-capture" onclick="captureVehicles()">⬤ Capture</button>
         <button class="btn-download" id="btn-download" onclick="downloadReport()">↓ Download Report</button>
         <button class="btn-clear" id="btn-clear" onclick="clearCaptures()">✕ Clear All</button>
       </div>
       <div id="capture-log" class="capture-log"></div>
+
+      <div class="traffic-intel">
+        <div class="intel-header">◈ Traffic Intelligence & Prediction</div>
+        <div class="intel-metrics">
+          <div class="metric">
+            <span class="label">FLOW RATE</span>
+            <span id="flow-val" class="value">0 VPM</span>
+          </div>
+          <div class="metric">
+            <span class="label">AVG SPEED</span>
+            <span id="speed-val" class="value">0 km/h</span>
+          </div>
+        </div>
+        <div id="prediction-msg" class="prediction-msg">Analyzing traffic patterns...</div>
+      </div>
     </div>
 
   </div>
@@ -638,6 +794,8 @@
 
     let currentMode = 'object';
     let eyePollInterval = null;
+    let weaponPollInterval = null;
+    let trafficPollInterval = null;
     let buzzerAudio = null;
     let buzzerPlaying = false;
     let buzzerUnlocked = false;
@@ -711,17 +869,91 @@
       }, 500); // Poll every 500ms
     }
 
+    function stopWeaponPolling() {
+      if (weaponPollInterval) {
+        clearInterval(weaponPollInterval);
+        weaponPollInterval = null;
+      }
+      // Stop buzzer
+      if (buzzerAudio && buzzerPlaying) {
+        buzzerAudio.pause();
+        buzzerAudio.currentTime = 0;
+        buzzerPlaying = false;
+      }
+      document.getElementById('weapon-alert-banner').classList.remove('visible');
+    }
+
+    function startWeaponPolling() {
+      stopWeaponPolling();
+      buzzerAudio = document.getElementById('buzzer-audio');
+
+      weaponPollInterval = setInterval(() => {
+        fetch('/weapon_status')
+          .then(r => r.json())
+          .then(data => {
+            const banner = document.getElementById('weapon-alert-banner');
+
+            if (data.weapon_detected) {
+              banner.classList.add('visible');
+              if (!buzzerPlaying && buzzerUnlocked) {
+                buzzerAudio.play().catch(() => { });
+                buzzerPlaying = true;
+              }
+            } else {
+              banner.classList.remove('visible');
+              if (buzzerPlaying) {
+                buzzerAudio.pause();
+                buzzerAudio.currentTime = 0;
+                buzzerPlaying = false;
+              }
+            }
+          })
+          .catch(() => { });
+      }, 500);
+    }
+
+    function stopTrafficPolling() {
+      if (trafficPollInterval) {
+        clearInterval(trafficPollInterval);
+        trafficPollInterval = null;
+      }
+    }
+
+    function startTrafficPolling() {
+      stopTrafficPolling();
+      trafficPollInterval = setInterval(() => {
+        fetch('/traffic_status')
+          .then(r => r.json())
+          .then(data => {
+            document.getElementById('flow-val').textContent = data.vpm + ' VPM';
+            document.getElementById('speed-val').textContent = data.avg_speed + ' km/h';
+            document.getElementById('prediction-msg').textContent = data.prediction.message;
+            
+            // Color coding based on status
+            const msg = document.getElementById('prediction-msg');
+            if (data.prediction.status === 'Clear') msg.style.color = '#00ff88';
+            else if (data.prediction.status === 'Moderate') msg.style.color = '#ffaa00';
+            else if (data.prediction.status === 'Congested') msg.style.color = '#ff4444';
+          })
+          .catch(() => { });
+      }, 2000); // Poll every 2s
+    }
+
     function startObject() {
       currentMode = 'object';
       stopEyePolling();
+      stopTrafficPolling();
       document.getElementById("video").src = "/object?" + new Date().getTime();
       document.getElementById("mode-label").textContent = "MODE: OBJECT";
       document.getElementById("vehicle-panel").classList.remove('visible');
       setActive('btn-object');
+      startWeaponPolling();
     }
 
     function startEye() {
       currentMode = 'eye';
+      stopTrafficPolling();
+      stopWeaponPolling();
       document.getElementById("video").src = "/eye?" + new Date().getTime();
       document.getElementById("mode-label").textContent = "MODE: EYE";
       document.getElementById("vehicle-panel").classList.remove('visible');
@@ -732,10 +964,12 @@
     function startVehicle() {
       currentMode = 'vehicle';
       stopEyePolling();
+      stopWeaponPolling();
       document.getElementById("video").src = "/vehicle?" + new Date().getTime();
       document.getElementById("mode-label").textContent = "MODE: VEHICLE";
       document.getElementById("vehicle-panel").classList.add('visible');
       setActive('btn-vehicle');
+      startTrafficPolling();
     }
 
     // Vehicle capture & report functions
@@ -795,7 +1029,22 @@
         .catch(() => showToast('CAMERA SWITCH FAILED', 'info'));
     }
 
-    // Sync dropdown with server on load
+    // Truck Restriction toggle
+    function toggleTruckRestriction(enabled) {
+      fetch('/toggle_truck_restriction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: enabled })
+      })
+        .then(r => r.json())
+        .then(data => {
+          showToast('TRUCK RESTRICTION ' + (data.truck_restriction ? 'ENABLED' : 'DISABLED'), 
+                    data.truck_restriction ? 'info' : 'success');
+        })
+        .catch(() => showToast('TOGGLE FAILED', 'info'));
+    }
+
+    // Sync dropdown and restriction with server on load
     fetch('/get_camera')
       .then(r => r.json())
       .then(data => {
@@ -803,8 +1052,16 @@
       })
       .catch(() => { });
 
+    fetch('/get_truck_restriction')
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('truck-restriction-check').checked = data.truck_restriction;
+      })
+      .catch(() => { });
+
     // Set first button active on load
     document.getElementById('btn-object').classList.add('active');
+    startWeaponPolling();
 
   </script>
 

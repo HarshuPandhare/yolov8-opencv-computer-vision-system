@@ -1,11 +1,12 @@
 from flask import Flask, render_template, Response, jsonify, request
 from camera_config import get_camera_index, set_camera_index
 
-from object_detection import object_frames
+from object_detection import object_frames, get_weapon_status
 from eye_detection import eye_frames, get_eye_status
 from vehicle_detect import (vehicle_frames, capture_snapshot,
                             generate_report, get_current_counts,
-                            clear_captures)
+                            clear_captures, set_truck_restriction,
+                            get_truck_restriction, get_traffic_status)
 
 app = Flask(__name__)
 
@@ -15,10 +16,37 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/toggle_truck_restriction', methods=['POST'])
+def toggle_truck_restriction():
+    """Enable/disable truck restriction mode."""
+    data = request.get_json(force=True)
+    enabled = data.get('enabled', False)
+    set_truck_restriction(enabled)
+    return jsonify({"status": "ok", "truck_restriction": enabled})
+
+
+@app.route('/get_truck_restriction')
+def get_truck_restriction_status():
+    """Return the current truck restriction status."""
+    return jsonify({"truck_restriction": get_truck_restriction()})
+
+
+@app.route('/traffic_status')
+def traffic_status():
+    """Return traffic intelligence metrics and predictions."""
+    return jsonify(get_traffic_status())
+
+
 @app.route('/object')
 def object():
     return Response(object_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/weapon_status')
+def weapon_status():
+    """Polled by frontend to check if buzzer should play due to weapon."""
+    return jsonify(get_weapon_status())
 
 
 @app.route('/eye')

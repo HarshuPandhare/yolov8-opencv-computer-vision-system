@@ -1,3 +1,4 @@
+
 """
 Eye / Drowsiness detection using MediaPipe FaceLandmarker (tasks API)
 + Eye Aspect Ratio (EAR).
@@ -71,6 +72,56 @@ def _eye_aspect_ratio(landmarks, eye_indices, w, h):
     if h1 == 0:
         return 0.0
     return (v1 + v2) / (2.0 * h1)
+
+# ── Facts and Rules───────────────────────────────
+
+def build_facts(avg_ear, eyes_closed_since):
+    duration = 0
+    if eyes_closed_since:
+        duration = time.time() - eyes_closed_since
+
+    return {
+        "eyes_closed": avg_ear < EAR_THRESHOLD,
+        "duration": duration,
+        "drowsy": False,
+        "alarm_on": False
+    }
+
+
+RULES = [
+    {
+        "condition": lambda f: f["eyes_closed"] and f["duration"] >= CLOSED_THRESHOLD,
+        "action": lambda f: f.update({"drowsy": True})
+    },
+]
+
+def apply_rules(facts):
+    for rule in RULES:
+        if rule["condition"](facts):
+            rule["action"](facts)
+    return facts
+
+
+ACTIONS = [
+    {
+        "name": "detect_drowsy",
+        "pre": lambda f: f["eyes_closed"] and f["duration"] >= CLOSED_THRESHOLD,
+        "effect": lambda f: f.update({"drowsy": True})
+    },
+    {
+        "name": "trigger_alarm",
+        "pre": lambda f: f.get("drowsy", False),
+        "effect": lambda f: f.update({"alarm_on": True})
+    }
+]
+
+def strips_plan(facts):
+    plan = []
+    for action in ACTIONS:
+        if action["pre"](facts):
+            action["effect"](facts)
+            plan.append(action["name"])
+    return plan
 
 
 def get_eye_status():
@@ -165,16 +216,33 @@ def eye_frames():
                 _eyes_are_closed = True
                 if _eyes_closed_since is None:
                     _eyes_closed_since = time.time()
-                elif time.time() - _eyes_closed_since >= CLOSED_THRESHOLD:
-                    _alarm_active = True
-                    cv2.putText(frame, "!! DROWSINESS ALERT !!",
-                                (30, h - 30),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1.0,
-                                (0, 0, 255), 3)
             else:
                 _eyes_are_closed = False
                 _eyes_closed_since = None
-                _alarm_active = False
+
+        # ── AI Reasoning Layer ─────────────────────────────
+        avg_ear_local = avg_ear if face_found else 1.0
+        facts = build_facts(avg_ear_local, _eyes_closed_since)
+
+        # Rule-based reasoning (forward chaining)
+        facts = apply_rules(facts)
+
+        # STRIPS planning
+        plan = strips_plan(facts)
+
+        _alarm_active = facts["alarm_on"]
+
+        if _alarm_active:
+            cv2.putText(frame, "!! DROWSINESS ALERT !!",
+                        (30, h - 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.0,
+                        (0, 0, 255), 3)
+
+        # Show plan (optional visual)
+        cv2.putText(frame, f"Plan: {' -> '.join(plan)}",
+                    (30, h - 60),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                    (255, 255, 0), 1)
 
         # ── Show timer while eyes are closing ───────────────────────
         with _eye_lock:
@@ -189,5 +257,3 @@ def eye_frames():
 
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-    landmarker.close()
